@@ -65,12 +65,13 @@ class PrintService {
           if (res.code === 0) {
             console.log("printed " + job._id);
             this.jobService.setIsPrinted(job._id);
+          } else {
+            console.log("failed to print " + job._id);
           }
         }
 
         // save locally the isPrinted status, whether success or not.
         job.isPrinted = true;
-        console.log("failed to print " + job._id);
       })
       .catch(err => {
         logger.error(err);
