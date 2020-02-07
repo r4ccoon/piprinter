@@ -4,46 +4,82 @@ const logger = require("./Logger");
 const usbPrinterPath = "/dev/usb/lp0";
 
 class PrintService {
-  constructor() {
-    this.jobs = [];
+  constructor(jobService) {
+    this.jobService = jobService;
+    this.jobs = {};
   }
 
-  addJobs(jobs) {
-    this.jobs = this.jobs.concat(jobs);
-  }
-
-  print() {
+  printAll() {
     let counter = 0;
     setInterval(() => {
-      for (let i in this.jobs) {
-        let text = this.jobs[i].text;
-        if (this.jobs[i].isPrinted) {
-          continue;
-        }
-
-        let commandStr = this._generatePrintText(text);
-
-        console.log("printing " + this.jobs[i]._id);
-
-        shellExec(commandStr)
-          .then(res => {
-            if (res.stderr) {
-              logger.error(res.stderr);
-            } else {
-              console.log(res);
-              //todo: update stitch here
-            }
-
-            this.jobs[i].isPrinted = true;
-          })
-          .catch(err => {
-            logger.error(err);
-          });
-      }
+      this.jobService.getQueues().then(jobs => {
+        this.addJobs(jobs);
+        this.print();
+      });
 
       counter++;
       console.log(counter);
-    }, 2000);
+    }, 3000);
+  }
+
+  addJobs(jobs) {
+    jobs.forEach(job => {
+      if (job._id in this.jobs) {
+        return;
+      }
+
+      this.jobs[job._id] = job;
+    });
+  }
+
+  print() {
+    for (let i in this.jobs) {
+      let job = this.jobs[i];
+
+      if (job.isPrinted) {
+        continue;
+      }
+
+      console.log("printing " + job._id);
+
+      this._printOne(job);
+    }
+  }
+
+  _printOne(job) {
+    let text = job.text;
+
+    let commandStr = this._generatePrintText(text);
+
+    shellExec(commandStr)
+      .then(res => {
+        if (res.stderr) {
+          logger.error(res.stderr);
+        } else {
+          /* example return
+                {
+                  stdout: '',
+                  stderr: '',
+                  cmd: 'echo "print this bro" >> /dev/usb/lp0',
+                  code: 0
+                }*/
+
+          if (res.code === 0) {
+            console.log("printed " + job._id);
+            this.jobService.setIsPrinted(job._id);
+          }
+        }
+
+        // save locally the isPrinted status, whether success or not.
+        job.isPrinted = true;
+        console.log("failed to print " + job._id);
+
+        ///////
+        this.jobService.setIsPrinted([job._id]);
+      })
+      .catch(err => {
+        logger.error(err);
+      });
   }
 
   _generatePrintText(text) {
