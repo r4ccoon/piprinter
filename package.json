@@ -1,0 +1,15 @@
+{
+  "name": "piprinter",
+  "version": "1.0.0",
+  "description": "ok",
+  "main": "main.js",
+  "author": "ridho.laksono <ridho.laksono@lamudi.com>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "mongodb-stitch-server-sdk": "^4.8.0",
+    "winston": "^3.2.1",
+    "winston-transport-sentry-node": "^0.2.0"
+  }
+}
