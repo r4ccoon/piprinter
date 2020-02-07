@@ -1,5 +1,14 @@
 const JobService = require("./service/JobService.js");
-require('dotenv').config()
+const PrintService = require("./service/PrintService.js");
+require("dotenv").config();
+
+let printService = new PrintService();
 
 let jobService = new JobService();
-jobService.getQueues();
+
+jobService.getQueues().then(jobs => {
+  console.log(jobs);
+  printService.addJobs(jobs);
+});
+
+printService.print();

@@ -9,6 +9,7 @@
   "dependencies": {
     "dotenv": "^8.2.0",
     "mongodb-stitch-server-sdk": "^4.8.0",
+    "shell-exec": "^1.0.2",
     "winston": "^3.2.1",
     "winston-transport-sentry-node": "^0.2.0"
   }

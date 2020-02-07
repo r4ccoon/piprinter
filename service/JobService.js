@@ -6,11 +6,7 @@ class JobService {
   }
 
   getQueues() {
-    this._stitchClient.client
-      .callFunction("getQueues")
-      .then(docs => {
-        console.log(docs);
-      });
+    return this._stitchClient.client.callFunction("getQueues");
   }
 }
 
