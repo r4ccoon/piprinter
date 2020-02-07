@@ -1,8 +1,6 @@
 const shellExec = require("shell-exec");
 const logger = require("./Logger");
 
-const usbPrinterPath = "/dev/usb/lp0";
-
 class PrintService {
   constructor(jobService) {
     this.jobService = jobService;
@@ -73,9 +71,6 @@ class PrintService {
         // save locally the isPrinted status, whether success or not.
         job.isPrinted = true;
         console.log("failed to print " + job._id);
-
-        ///////
-        this.jobService.setIsPrinted([job._id]);
       })
       .catch(err => {
         logger.error(err);
@@ -83,7 +78,7 @@ class PrintService {
   }
 
   _generatePrintText(text) {
-    return `echo "${text}" >> ${usbPrinterPath}`;
+    return `echo "${text}" >> ${process.env.LINE_PRINTER_PATH}`;
   }
 }
 
