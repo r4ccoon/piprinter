@@ -1,4 +1,6 @@
 const shellExec = require("shell-exec");
+const logger = require("./Logger");
+
 const usbPrinterPath = "/dev/usb/lp0";
 
 class PrintService {
@@ -7,35 +9,41 @@ class PrintService {
   }
 
   addJobs(jobs) {
-    this.jobs.concat(jobs);
-    console.log("adding");
-    console.log(this.jobs);
+    this.jobs = this.jobs.concat(jobs);
   }
 
   print() {
     let counter = 0;
-    setInterval((jobs) => {
-      for (let i in jobs) {
-        let text = jobs[i].text;
-        if (jobs[i].isPrinted) {
+    setInterval(() => {
+      for (let i in this.jobs) {
+        let text = this.jobs[i].text;
+        if (this.jobs[i].isPrinted) {
           continue;
         }
 
         let commandStr = this._generatePrintText(text);
 
-        console.log("printing " + jobs[i]._id);
+        console.log("printing " + this.jobs[i]._id);
 
         shellExec(commandStr)
           .then(res => {
-            console.log(res);
-            jobs[i].isPrinted = true;
+            if (res.stderr) {
+              logger.error(res.stderr);
+            } else {
+              console.log(res);
+              //todo: update stitch here
+            }
+
+            this.jobs[i].isPrinted = true;
           })
-          .catch(console.log);
+          .catch(err => {
+            logger.error(err);
+          });
       }
 
       counter++;
       console.log(counter);
-    }, 2000, this.jobs);
+    }, 2000);
   }
 
   _generatePrintText(text) {

@@ -11,9 +11,6 @@ class StitchClient {
     this.client.auth
       .loginWithCredential(new UserApiKeyCredential(process.env.API_KEY))
       .then(user => {
-        logger.info(user.isLoggedIn);
-        logger.info(user.auth.activeUserAuthInfo.userProfile.data.name);
-
         this.isLoggedIn = user.isLoggedIn;
         this.user = user.auth.activeUserAuthInfo.userProfile.data;
         this.client.close();

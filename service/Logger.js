@@ -5,7 +5,7 @@ const options = {
   sentry: {
     dsn: process.env.SENTRY_DSN
   },
-  level: "warn"
+  level: "error"
 };
 
 const logger = winston.createLogger({
