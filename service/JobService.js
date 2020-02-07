@@ -11,7 +11,7 @@ class JobService {
 
   setIsPrinted(jobId) {
     console.log('setisprinted ' + jobId)
-    return this._stitchClient.client.callFunction("setIsPrinted", jobId);
+    return this._stitchClient.client.callFunction("setIsPrinted", [jobId]);
   }
 }
 
