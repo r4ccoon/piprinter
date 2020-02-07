@@ -8,32 +8,34 @@ class PrintService {
 
   addJobs(jobs) {
     this.jobs.concat(jobs);
+    console.log("adding");
+    console.log(this.jobs);
   }
 
   print() {
     let counter = 0;
-    setInterval(() => {
-      for (let i in this.jobs) {
-        let text = this.jobs[i].text;
-        if (this.jobs[i].isPrinted) {
+    setInterval((jobs) => {
+      for (let i in jobs) {
+        let text = jobs[i].text;
+        if (jobs[i].isPrinted) {
           continue;
         }
 
         let commandStr = this._generatePrintText(text);
 
-        console.log("printing " + this.jobs[i]._id);
+        console.log("printing " + jobs[i]._id);
 
         shellExec(commandStr)
           .then(res => {
             console.log(res);
-            this.jobs[i].isPrinted = true;
+            jobs[i].isPrinted = true;
           })
           .catch(console.log);
       }
 
       counter++;
       console.log(counter);
-    }, 2000);
+    }, 2000, this.jobs);
   }
 
   _generatePrintText(text) {
