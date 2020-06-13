@@ -5,4 +5,4 @@ require("dotenv").config();
 let jobService = new JobService();
 
 let printService = new PrintService(jobService);
-printService.printAll();
+printService.getQueuesAndPrintAll();

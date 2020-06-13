@@ -5,23 +5,31 @@ class PrintService {
   constructor(jobService) {
     this.jobService = jobService;
     this.jobs = {};
+    this.counter = 0;
   }
 
-  printAll() {
-    let counter = 0;
-    setInterval(() => {
-      this.jobService.getQueues().then(jobs => {
-        this.addJobs(jobs);
-        this.print();
-      });
+  async getQueuesAndPrintAll() {
+    this.jobService.getQueues().then(async (jobs) => {
+      this.addJobs(jobs);
+      await this.print();
 
-      counter++;
-      console.log(counter);
-    }, 3000);
+      // after done printing all jobs, we get job queues again
+      await this.sleep(3000);
+      await this.getQueuesAndPrintAll();
+    });
+
+    this.counter++;
+    console.log(this.counter);
+  }
+  
+  sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   addJobs(jobs) {
-    jobs.forEach(job => {
+    console.log("got " + jobs.length);
+
+    jobs.forEach((job) => {
       if (job._id in this.jobs) {
         return;
       }
@@ -30,7 +38,7 @@ class PrintService {
     });
   }
 
-  print() {
+  async print() {
     for (let i in this.jobs) {
       let job = this.jobs[i];
 
@@ -40,7 +48,7 @@ class PrintService {
 
       console.log("printing " + job._id);
 
-      this._printOne(job);
+      await this._printOne(job);
     }
   }
 
@@ -49,12 +57,14 @@ class PrintService {
 
     let commandStr = this._generatePrintText(text);
 
-    shellExec(commandStr)
-      .then(res => {
-        if (res.stderr) {
-          logger.error(res.stderr);
-        } else {
-          /* example return
+    return new Promise((resolve, reject) => {
+      shellExec(commandStr)
+        .then((res) => {
+          if (res.stderr) {
+            reject(res.stderr);
+            logger.error(res.stderr);
+          } else {
+            /* example return
                 {
                   stdout: '',
                   stderr: '',
@@ -62,20 +72,23 @@ class PrintService {
                   code: 0
                 }*/
 
-          if (res.code === 0) {
-            console.log("printed " + job._id);
-            this.jobService.setIsPrinted(job._id);
-          } else {
-            console.log("failed to print " + job._id);
+            if (res.code === 0) {
+              console.log("printed " + job._id);
+              this.jobService.setIsPrinted(job._id);
+              resolve("printed " + job._id);
+            } else {
+              console.log("failed to print " + job._id);
+              reject("failed to print " + job._id);
+            }
           }
-        }
 
-        // save locally the isPrinted status, whether success or not.
-        job.isPrinted = true;
-      })
-      .catch(err => {
-        logger.error(err);
-      });
+          // save locally the isPrinted status, whether success or not.
+          job.isPrinted = true;
+        })
+        .catch((err) => {
+          logger.error(err);
+        });
+    });
   }
 
   _generatePrintText(text) {
